@@ -1,0 +1,125 @@
+```html
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>時間小精靈</title>
+<style>
+  body { text-align: center; font-family: Arial; }
+  canvas { background: #eee; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h2>時間小精靈 Time Collector</h2>
+<p>用方向鍵移動，吃掉惡魔收集時間！</p>
+<p id="info"></p>
+
+<canvas id="game" width="400" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let player = { x: 200, y: 200, size: 15, speed: 3 };
+
+let monsters = [];
+let score = 0;
+let level = 1;
+let target = 30;
+
+// 建立怪物
+function spawnMonsters() {
+  monsters = [];
+  for (let i = 0; i < 6; i++) {
+    let type = Math.random();
+    let value = type < 0.33 ? 5 : type < 0.66 ? 10 : 15;
+
+    monsters.push({
+      x: Math.random() * 380,
+      y: Math.random() * 380,
+      size: 10,
+      value: value
+    });
+  }
+}
+
+// 繪圖
+function draw() {
+  ctx.clearRect(0, 0, 400, 400);
+
+  // 玩家
+  ctx.fillStyle = "blue";
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 怪物
+  monsters.forEach(m => {
+    ctx.fillStyle = m.value === 5 ? "green" :
+                    m.value === 10 ? "orange" : "red";
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "black";
+    ctx.fillText(m.value, m.x - 5, m.y + 3);
+  });
+
+  document.getElementById("info").innerText =
+    `關卡: ${level} ｜時間: ${score}/${target}`;
+}
+
+// 碰撞
+function checkCollision() {
+  monsters = monsters.filter(m => {
+    let dx = player.x - m.x;
+    let dy = player.y - m.y;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < player.size + m.size) {
+      score += m.value;
+      return false;
+    }
+    return true;
+  });
+
+  if (score >= target) {
+    level++;
+    score = 0;
+
+    if (level === 2) target = 45;
+    else if (level === 3) target = 60;
+    else {
+      alert("🎉 遊戲完成！");
+      level = 1;
+      target = 30;
+    }
+
+    spawnMonsters();
+  }
+}
+
+// 控制
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") player.y -= player.speed;
+  if (e.key === "ArrowDown") player.y += player.speed;
+  if (e.key === "ArrowLeft") player.x -= player.speed;
+  if (e.key === "ArrowRight") player.x += player.speed;
+});
+
+// 遊戲循環
+function gameLoop() {
+  draw();
+  checkCollision();
+  requestAnimationFrame(gameLoop);
+}
+
+// 初始化
+spawnMonsters();
+gameLoop();
+</script>
+
+</body>
+</html>
+```
